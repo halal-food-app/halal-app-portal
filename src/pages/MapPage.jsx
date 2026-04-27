@@ -1,4 +1,8 @@
 import { useEffect, useState } from "react"
+import Map, { Marker, NavigationControl, GeolocateControl } from 'react-map-gl/mapbox'
+import 'mapbox-gl/dist/mapbox-gl.css'
+
+const TOKEN = import.meta.env.VITE_MAPBOX_TOKEN
 
 const MapPage = () => {
 
@@ -33,7 +37,18 @@ const MapPage = () => {
                         </div>
                     ))}
                 </div>
-                <div className="absolute inset-0 bg-gray-200">
+                <div className="absolute inset-0">
+                    <Map
+                    
+                        initialViewState={{
+                        latitude: 43.6532,
+                        longitude: -79.3832,
+                        zoom: 11
+                        }}
+                        mapStyle="mapbox://styles/mapbox/streets-v12"
+                        mapboxAccessToken={TOKEN}
+                    >
+                    </Map>
                 </div>
             </div>
     }
