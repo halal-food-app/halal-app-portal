@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react"
+import { useEffect, useState, useMemo } from "react"
 import Map, { Marker, NavigationControl, GeolocateControl } from 'react-map-gl/mapbox'
 import 'mapbox-gl/dist/mapbox-gl.css'
+import Pin from '../components/Pin'
 
 const TOKEN = import.meta.env.VITE_MAPBOX_TOKEN
 
@@ -25,6 +26,19 @@ const MapPage = () => {
     getRestaurants();
   }, []);
 
+      const pins = useMemo(
+        () => restaurants.map((restaurant) => (
+            <Marker
+                key={restaurant.id}
+                latitude={restaurant.lat}
+                longitude={restaurant.lng}
+            >
+                <Pin />
+            </Marker>
+        )),
+        [restaurants]
+    )
+
     return <div className="relative w-screen h-screen">
                 <div className="absolute left-0 top-0 h-full w-80 bg-white overflow-y-auto z-10 shadow-lg p-4">
                     <h2 className="text-xl font-bold mb-4">Restaurants</h2>
@@ -48,6 +62,9 @@ const MapPage = () => {
                         mapStyle="mapbox://styles/mapbox/streets-v12"
                         mapboxAccessToken={TOKEN}
                     >
+                        <GeolocateControl position="top-right" />
+                        <NavigationControl position="top-right" />
+                        {pins}
                     </Map>
                 </div>
             </div>
