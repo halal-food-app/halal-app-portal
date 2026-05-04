@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo } from "react"
 import Map, { Marker, NavigationControl, GeolocateControl } from 'react-map-gl/mapbox'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import Pin from '../components/Pin'
+import BottomSheet from "../components/BottomSheet"
 
 const TOKEN = import.meta.env.VITE_MAPBOX_TOKEN
 
@@ -9,7 +10,7 @@ const MapPage = () => {
 
     const [restaurants, setRestaurants] = useState([])
     const [loading, setLoading] = useState(true)
-
+    const [selected, setSelected] = useState(null)
     useEffect(() => {
         const getRestaurants = async () => {
             try {
@@ -32,28 +33,17 @@ const MapPage = () => {
                 key={restaurant.id}
                 latitude={restaurant.lat}
                 longitude={restaurant.lng}
+                onClick={() => setSelected(restaurant)}            
             >
                 <Pin />
             </Marker>
         )),
-        [restaurants]
+        [restaurants, setSelected]
     )
 
     return <div className="relative w-screen h-screen">
-                <div className="absolute left-0 top-0 h-full w-80 bg-white overflow-y-auto z-10 shadow-lg p-4">
-                    <h2 className="text-xl font-bold mb-4">Restaurants</h2>
-                    {loading && <p>Loading...</p>}
-                    {restaurants.map((restaurant) => (
-                        <div key={restaurant.id} className="p-3 mb-2 border rounded-lg">
-                            <h3 className="font-semibold">{restaurant.name}</h3>
-                            <p className="text-sm text-gray-500">{restaurant.address}</p>
-                            <p className="text-sm text-gray-500">{restaurant.halal_status}</p>
-                        </div>
-                    ))}
-                </div>
                 <div className="absolute inset-0">
                     <Map
-                    
                         initialViewState={{
                         latitude: 43.6532,
                         longitude: -79.3832,
@@ -66,6 +56,10 @@ const MapPage = () => {
                         <NavigationControl position="top-right" />
                         {pins}
                     </Map>
+                    <BottomSheet 
+                        restaurant={selected} 
+                        onClose={() => setSelected(null)} 
+                    />
                 </div>
             </div>
     }
