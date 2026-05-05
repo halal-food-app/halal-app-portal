@@ -1,31 +1,45 @@
-import { useEffect, useState, useMemo } from "react"
+import { useEffect, useState, useMemo, useRef } from "react"
 import Map, { Marker, NavigationControl, GeolocateControl } from 'react-map-gl/mapbox'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import Pin from '../components/Pin'
 import BottomSheet from "../components/BottomSheet"
+import SearchBar from "../components/SearchBar"
 
 const TOKEN = import.meta.env.VITE_MAPBOX_TOKEN
 
 const MapPage = () => {
-
     const [restaurants, setRestaurants] = useState([])
     const [loading, setLoading] = useState(true)
     const [selected, setSelected] = useState(null)
-    useEffect(() => {
-        const getRestaurants = async () => {
-            try {
-                const response = await fetch(import.meta.env.VITE_API_URL + '/restaurants')
-                const result = await response.json();
-                setRestaurants(result)
-            } catch (error) {
-            console.error("Error fetching data:", error);
-            } finally {
-                setLoading(false)
-            }
-        };
+    const [search, setSearch] = useState('')
+    const mapRef = useRef(null)
 
-    getRestaurants();
-  }, []);
+    const getRestaurants = async () => {
+        try {
+            const bounds = mapRef.current?.getBounds()
+            const boundsParam = bounds
+                ? `&bounds=${bounds.getSouth()},${bounds.getNorth()},${bounds.getWest()},${bounds.getEast()}`
+                : ''
+            const url = import.meta.env.VITE_API_URL + '/restaurants?' + 
+                (search ? `name=${search}` : '') + boundsParam
+            const response = await fetch(url)
+            const result = await response.json()
+            setRestaurants(result)
+        } catch (error) {
+            console.error("Error fetching data:", error)
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            getRestaurants()
+        }, 300)
+
+        return () => clearTimeout(timer)
+    }, [search])
+
 
       const pins = useMemo(
         () => restaurants.map((restaurant) => (
@@ -43,7 +57,10 @@ const MapPage = () => {
 
     return <div className="relative w-screen h-screen">
                 <div className="absolute inset-0">
+                    <SearchBar search={search} onSearch={setSearch} />
                     <Map
+                        ref={mapRef}
+                        onMoveEnd={() => getRestaurants()}
                         initialViewState={{
                         latitude: 43.6532,
                         longitude: -79.3832,
